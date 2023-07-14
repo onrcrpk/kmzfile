@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A simple map with a marker and popup</title>
+
+   
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" integrity="sha512-Zcn6bjR/8RZbLEpLIeOwNtzREBAJnUKESxces60Mpoj+2okopSAcSUIUOseddDm0cxnGQzxIR7vJgsLZbdLE3w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/themes/prism-coy.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js"></script>
+
+
+<style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .content {
+      max-width: 97%; 
+      margin: 0 auto;
+    }
+
+
+    h1, h2, h3 {
+    text-align: center;
+    margin: 10px 0;  
+}
+
+h2 {
+    font-size: 25px; 
+    color: #333;
+    margin-bottom: 1px; 
+}
+
+h3 {
+    font-size: 20px;  
+    color: #d89339;
+    margin-top: 1px;  
+}
+
+
+    .map-container {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 20px;
+    }
+
+    .maps-row {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    
+
+    .map-box {
+      width: 45%;
+      margin-bottom: 20px;
+    }
+
+    .map {
+      height: 300px;
+    }
+
+    pre {
+      background-color:rgb(255, 248, 240);
+      padding: 10px;
+      overflow: auto;
+      white-space: pre-wrap; /* wrap text according to window size */
+      max-height: 400px; /* Adjust the value as needed */
+      border: 1px solid #ddd; /* border to make the box stand out */
+      border-radius: 5px; /* rounded corners for a softer look */
+    }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js" integrity="sha512-3gJwYpMe3QewGELv8k/BX9vcqhryRdzRMxVfq6ngyWXwo03GFEzjsUm8Q7RZcHPHksttq7/GFoxjCVUjkjvPdw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/ol@v7.4.0/dist/ol.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.4.0/ol.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" integrity="sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://unpkg.com/leaflet-kmz@latest/dist/leaflet-kmz.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.2.2/jszip.min.js"></script>
+
+
+</head>
+
+
+
+<body>
+    
+    <div class="content">
+    <h2>Leaflet vs OpenLayers Comparison</h1>
+    <h3>A simple map with a marker and popup</h3>
+
+    <div class="maps-row">
+        <div class="map-box">
+          <div id="leaflet-map" class="map"></div>
+          <div id="leaflet-code">
+            <h2>Leaflet</h2>
+            <pre>
+              <code id="leaflet-code-content"></code>
+            </pre>
+          </div>
+        </div>
+    
+        <div class="map-box">
+          <div id="openlayers-map" class="map"></div>
+          <div id="openlayers-code">
+            <h2>OpenLayers</h2>
+            <pre>
+              <code id="openlayers-code-content"></code>
+            </pre>
+          </div>
+        </div>
+      </div>
+    
+      <div id="popup" class="ol-popup">
+        <div id="popup-content"></div>
+      </div>
+
+
+    <script>
+
+
+// Leaflet Map
+var leafletMap = L.map('leaflet-map').setView([52.2, 6.9], 10);
+
+// Add a scale control to the map that only shows kilometers
+L.control.scale({metric: true, imperial: false}).addTo(leafletMap);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18
+}).addTo(leafletMap);
+
+// Instantiate KMZ layer (async)
+var kmzLayer = L.kmzLayer().addTo(leafletMap);
+kmzLayer.load('species.kmz');
+
+kmzLayer.on('loaded', function(e) {
+    leafletMap.fitBounds(e.target.getBounds());
+});
+
+
+document.getElementById('leaflet-code-content').innerHTML = Prism.highlight(`
+// Set up the map with initial view settings
+var leafletMap = L.map('leaflet-map').setView([52.2, 6.9], 10);
+
+// Add control scale on the map
+L.control.scale({metric: true, imperial: false}).addTo(leafletMap);
+
+// Add OpenStreetMap tile layer to the map
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18
+}).addTo(leafletMap);
+
+// Create a marker at the coordinates [52.2378, 6.8545] and add it to the leafletMap.
+var leafletMarker = L.marker([52.2378, 6.8545]).addTo(leafletMap);
+
+// Attach a popup with the content "Faculty ITC" to the leafletMarker.
+leafletMarker.bindPopup('Faculty ITC');
+`, Prism.languages.javascript, 'javascript');
+
+
+// Create new OpenLayers map, point feature, and styles
+var openLayersMap = new ol.Map({
+    target: 'openlayers-map',
+    layers: [new ol.layer.Tile({ source: new ol.source.OSM() })],
+    view: new ol.View({ center: ol.proj.fromLonLat([6.9, 52.2]), zoom: 10 })
+});
+
+// Add a scale line control to the map
+openLayersMap.addControl(new ol.control.ScaleLine());
+
+// Instantiate JSZip
+var zip = new JSZip();
+
+// Function to get KML data from the KMZ buffer
+function getKMLData(buffer) {
+  let kmlData;
+  zip.loadAsync(buffer).then(function(zip){
+    kmlFile = zip.file(/\.kml$/i)[0];
+    if (kmlFile) {
+      kmlFile.async("text").then(function (data) {
+        const vector = new ol.layer.Vector({
+          source: new ol.source.Vector({
+            url: 'data:' + 'text/xml;charset=utf-8,' + encodeURIComponent(data),
+            format: new ol.format.KML()
+          })
+        });
+        openLayersMap.addLayer(vector);
+      });
+    }
+  });
+}
+
+// Fetch KMZ file and convert it to ArrayBuffer
+fetch('species.kmz').then(response => response.arrayBuffer()).then(getKMLData);
+
+
+
+
+
+
+document.getElementById('openlayers-code-content').innerHTML =  Prism.highlight(`
+// Create a new OpenLayers map instance
+var openLayersMap = new ol.Map({
+    target: 'openlayers-map',
+    layers: [new ol.layer.Tile({ source: new ol.source.OSM() })],
+    view: new ol.View({ center: ol.proj.fromLonLat([6.9, 52.2]), zoom: 10 })
+});
+
+// Add a scale line control to the map
+openLayersMap.addControl(new ol.control.ScaleLine());
+
+// Create a marker feature at the specified coordinates
+var openLayersMarker = new ol.Feature({
+    geometry: new ol.geom.Point(ol.proj.fromLonLat([6.8545, 52.2378]))
+});
+
+// Set the style for the marker
+openLayersMarker.setStyle(new ol.style.Style({
+    image: new ol.style.Icon({ src: 'https://openlayers.org/en/latest/examples/data/icon.png' })
+}));
+
+// Create a vector layer and add the marker feature to it
+openLayersMap.addLayer(new ol.layer.Vector({
+    source: new ol.source.Vector({ features: [openLayersMarker] })
+}));
+
+// Create an overlay for the popup
+var overlay = new ol.Overlay({
+    element: document.getElementById('popup'),
+    positioning: 'bottom-center',
+    stopEvent: false
+});
+
+// Add the overlay to the map
+openLayersMap.addOverlay(overlay);
+
+// Listen for click events on the map
+openLayersMap.on('click', function (event) {
+    // Get the clicked feature, if any
+    var feature = openLayersMap.forEachFeatureAtPixel(event.pixel, function (feature) {
+        return feature;
+    });
+
+    if (feature) {
+        // Show the popup at the marker's coordinates
+        overlay.setPosition(feature.getGeometry().getCoordinates());
+
+        // Set the content and style of the popup
+        var popupContent = document.getElementById('popup-content');
+        popupContent.innerHTML = 'Faculty ITC';
+        popupContent.style.cssText = "font-family: Arial, sans-serif; font-size: 14px; color: #333; padding: 10px; background: #fff; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);";
+    } else {
+        // Hide the popup if no feature is clicked
+        overlay.setPosition(undefined);
+    }
+});
+`, Prism.languages.javascript, 'javascript');;
+
+
+
+</script>
+
+</body>
+
+
+
+
+</html>
